@@ -1,13 +1,15 @@
 import PendingOrders from './components/PendingOrders.vue';
 import NewOrder from './components/NewOrder.vue';
+import NewProduct from './components/NewProduct.vue';
 import History from './components/History.vue';
-import ProductConfigurator from './components/ProductConfigurator.vue';
+import Settings from './components/settings/Settings.vue';
 
 const routes = [
   { path: '/orders/pending', component: PendingOrders },
   { path: '/order/new', component: NewOrder },
   { path: '/history', component: History },
-  { path: '/settings', component: ProductConfigurator }
+  { path: '/settings', component: Settings },
+  { path: '/settings/product/new', component: NewProduct}
 ]
 
 import Vue from 'vue'

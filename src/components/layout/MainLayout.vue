@@ -26,44 +26,46 @@
       </v-btn> -->
       <v-toolbar-title>Q-Bar</v-toolbar-title>
       <v-spacer></v-spacer>
-      <user-logged-in :username="username" @userLoggedOut="logOut" />
+      <user-logged-in-menu :username="username" @userLoggedOut="logOut" />
     </v-toolbar>
     <v-content>
-      <v-container fluid>
-        <v-slide-y-transition mode="out-in">
-          <router-view></router-view>
-        </v-slide-y-transition>
-      </v-container>
+      <v-slide-y-transition mode="out-in">
+        <router-view></router-view>
+      </v-slide-y-transition>
     </v-content>
   </div>
 </template>
 
 <script>
-  import UserLoggedIn from './UserLoggedIn.vue'
+import UserLoggedInMenu from "./UserLoggedInMenu.vue";
 
-  export default {
-    props: ['username'],
-    data () {
-      return {
-        clipped: true,
-        drawer: true,
-        fixed: false,
-        items: [
-          { icon: 'notifications', title: 'Pending orders', to: '/orders/pending'},
-          { icon: 'note_add', title: 'Add order', to: '/order/new'},
-          { icon: 'history', title: 'Order historic', to: '/history'},
-          { icon: 'settings', title: 'Settings', to: '/settings'}
-        ],
-        miniVariant: false,
-      }
-    },
-    methods: {
-      logOut() {
-        this.$emit('logOut')
-      }
-    },
-    components: {
-      UserLoggedIn
+export default {
+  props: ["username"],
+  data() {
+    return {
+      clipped: true,
+      drawer: true,
+      fixed: false,
+      items: [
+        {
+          icon: "notifications",
+          title: "Pending orders",
+          to: "/orders/pending"
+        },
+        { icon: "note_add", title: "Add order", to: "/order/new" },
+        { icon: "history", title: "Order historic", to: "/history" },
+        { icon: "settings", title: "Settings", to: "/settings" }
+      ],
+      miniVariant: false
+    };
+  },
+  methods: {
+    logOut() {
+      this.$emit("logOut");
     }
+  },
+  components: {
+    UserLoggedInMenu
   }
+};
 </script>

@@ -73,16 +73,6 @@ export default {
     //   extras: null,
     //   allowNotes: false
     // })
-    // .then(function(docRef) {
-    //     console.log("Document written with ID: ", docRef.id);
-    // })
-    // .catch(function(error) {
-    //     console.error("Error adding document: ", error);
-    // // });
-
-    // firebase.firestore().collection('products').get().then((querySnapshot)=> {
-    //   querySnapshot.forEach((doc) => {
-    // console.log(`${doc.id} => ${doc.data()}`);
   },
   methods: {
     getFirestoreConfigFromFile() {

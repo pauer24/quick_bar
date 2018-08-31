@@ -1,3 +1,6 @@
+import firebase from 'firebase';
+import Enumerable from 'linq';
+
 const state = {
   username: null
 };
@@ -21,7 +24,10 @@ const actions = {
 }
 
 const getters = {
-  appSettings: state => { return state.username }
+  productsCollection: state => {
+    return firebase.firestore()
+    .collection('products')
+  }
 }
 
 export default {
