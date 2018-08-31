@@ -1,16 +1,13 @@
 const state = {
-  username: null,
-  dbUrl: null
+  username: null
 };
 
 const mutations = {
   'RESET_APP' (state) {
-    state.username = null,
-    state.dbUrl = null
+    state.username = null
   },
-  'INITIALIZE_APP' (state, {username, dbUrl}) {
+  'INITIALIZE_APP' (state, username) {
     state.username = username;
-    state.dbUrl = dbUrl;
   }
 }
 
@@ -18,13 +15,13 @@ const actions = {
   resetApp({commit}) {
     commit('RESET_APP');
   },
-  initializeApp({commit}, {username, dbUrl}) {
-    commit('INITIALIZE_APP', {username, dbUrl});
+  initializeApp({commit}, username) {
+    commit('INITIALIZE_APP', username);
   }
 }
 
 const getters = {
-  appSettings: state => { return {  username: state.username, dbUrl: state.dbUrl} }
+  appSettings: state => { return state.username }
 }
 
 export default {

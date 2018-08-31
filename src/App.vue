@@ -1,58 +1,132 @@
 <template>
   <v-app>
-    <main-layout v-if="isInitialized" @logOut="resetApp()"></main-layout>
+    <main-layout v-if="isInitialized" @logOut="resetApp()" :username="username"></main-layout>
     <v-content v-else>
-      <v-container fluid>
-      <p>Lets initialize the app!</p>
-      <v-form ref="form" v-model="valid">
-        <v-text-field
-          v-model="username"
-          label="Username"
-          required
-        ></v-text-field>
-        <v-text-field
-          v-model="dbUrl"
-          label="Database Url"
-          required
-        ></v-text-field>
-        <v-btn :disabled="!valid" @click="saveData">Ready!</v-btn>
-      </v-form>
-      </v-container>
+      <v-img src="https://wallpapers.wallhaven.cc/wallpapers/full/wallhaven-309808.jpg">
+        <v-container fluid grid-list-md>
+          <v-layout row>
+            <v-flex>
+              <h1 class="ma-5">Welcome to Q-BAR!</h1>
+            </v-flex>
+          </v-layout>
+        </v-container>
+        <v-form ref="form">
+          <v-container>
+            <v-layout row wrap>
+              <v-flex xs12 sm6>
+                <v-card class="pa-4 mb-3 semitransparent">
+                  <v-text-field v-model="username" label="Username" required></v-text-field>
+                </v-card>
+              </v-flex>
+            </v-layout>
+            <v-layout>
+              <v-flex xs12 sm6>
+                <v-card class="px-4 pb-4 semitransparent" v-if="showConfigSection">
+                  <v-card-title primary-title>
+                    <h3>Firestore configuration</h3>
+                  </v-card-title>
+                  <v-text-field v-model="firestoreConfig.apiKey" label="API key" required></v-text-field>
+                  <v-text-field v-model="firestoreConfig.authDomain" label="Auth domain" required></v-text-field>
+                  <v-text-field v-model="firestoreConfig.projectId" label="Project ID" required></v-text-field>
+                </v-card>
+              </v-flex>
+              <!-- <v-btn :disabled="!valid" @click="saveData">Ready!</v-btn> -->
+            </v-layout>
+            <v-layout>
+              <v-btn @click="isValid" class="transparent">Ready!</v-btn>
+            </v-layout>
+          </v-container>
+        </v-form>
+
+        <!-- </v-parallax> -->
+      </v-img>
     </v-content>
   </v-app>
 </template>
 
 <script>
-  import MainLayout from './components/layout/MainLayout.vue';
-  import { mapActions, mapGetters } from 'vuex';
+import MainLayout from "./components/layout/MainLayout.vue";
+import { mapActions, mapGetters } from "vuex";
+import firebase from "firebase";
 
-  export default {
-    data() {
-      return {
-        valid: true,
-        dbUrl: null,
-        username: null
+export default {
+  data() {
+    return {
+      username: 'Paulov',
+      firestoreConfig: {},
+      showConfigSection: false,
+      isInitialized: false,
+      firestoreInitialized: false
+    };
+  },
+  created() {
+    this.firestoreConfig = this.getFirestoreConfigFromFile();
+    this.showConfigSection = this.firestoreConfig == null && this.isValidFirestoreConfig();
+
+    this.isValid();
+
+    // firebase.firestore().collection('products')
+    // .add({
+    //   name: 'Onion',
+    //   imageUrl: 'http://www.ourbwg.ca/wp-content/uploads/2015/06/Fried-Onions-720x340.jpg',
+    //   price: 0.5,
+    //   extras: null,
+    //   allowNotes: false
+    // })
+    // .then(function(docRef) {
+    //     console.log("Document written with ID: ", docRef.id);
+    // })
+    // .catch(function(error) {
+    //     console.error("Error adding document: ", error);
+    // // });
+
+    // firebase.firestore().collection('products').get().then((querySnapshot)=> {
+    //   querySnapshot.forEach((doc) => {
+    // console.log(`${doc.id} => ${doc.data()}`);
+  },
+  methods: {
+    getFirestoreConfigFromFile() {
+      try {
+        return require("../public/firestoreConfig.json");
+      } catch (e) {
+        return null;
       }
     },
-    methods: {
-      saveData() {
-        this.initializeApp({username: this.username, dbUrl: this.dbUrl});
-      },
-      ...mapActions({
-        resetApp: 'resetApp',
-        initializeApp: 'initializeApp'
-      })
-    },
-    computed: {
-      ...mapGetters({
-        appSettings: 'appSettings'
-      }),
-      isInitialized() {
-        return this.appSettings.dbUrl && this.appSettings.username;
+    isValid() {
+      if (this.username && this.isValidFirestoreConfig()) {
+        this.isInitialized = true;
+        this.initializeFirestore();
       }
     },
-    components: {
-      mainLayout: MainLayout,
+    initializeFirestore() {
+      if (!this.isValidFirestoreConfig()) {
+        throw "Firestore configuration is not valid!";
+      }
+
+      if(this.firestoreInitialized) {return;}
+      firebase.initializeApp(this.firestoreConfig);
+      firebase.firestore().settings({ timestampsInSnapshots: true });
+      this.firestoreInitialized = true;
+    },
+    isValidFirestoreConfig() {
+      let result =
+        !!this.firestoreConfig.apiKey &&
+        !!this.firestoreConfig.authDomain &&
+        !!this.firestoreConfig.projectId;
+      return result;
+    },
+    resetApp() {
+      this.username = null;
+      this.isInitialized = false;
     }
+  },
+  components: {
+    mainLayout: MainLayout
   }
+};
 </script>
+<style scoped>
+.v-card {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+</style>

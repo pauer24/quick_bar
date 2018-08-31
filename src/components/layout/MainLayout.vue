@@ -2,14 +2,14 @@
   <div>
     <v-navigation-drawer fixed :mini-variant="miniVariant" v-model="drawer" clipped app>
       <v-list>
-        <v-list-tile value="true" v-for="(item, i) in items" :key="i">
+        <router-link :to="item.to" tag="v-list-tile" active-class="active" value="true" v-for="(item, i) in items" :key="i">
           <v-list-tile-action>
             <v-icon v-html="item.icon"></v-icon>
           </v-list-tile-action>
           <v-list-tile-content>
             <v-list-tile-title v-text="item.title"></v-list-tile-title>
           </v-list-tile-content>
-        </v-list-tile>
+        </router-link>
       </v-list>
     </v-navigation-drawer>
     <!-- <v-toolbar fixed app :clipped-left="clipped" > -->
@@ -31,17 +31,6 @@
     <v-content>
       <v-container fluid>
         <v-slide-y-transition mode="out-in">
-          <v-layout column align-center>
-            <img src="/public/v.png" alt="Vuetify.js" class="mb-5" />
-            <blockquote>
-              &#8220;First, solve the problem. Then, write the code.&#8221;
-              <footer>
-                <small>
-                  <em>&mdash;John Johnson</em>
-                </small>
-              </footer>
-            </blockquote>
-          </v-layout>
           <router-view></router-view>
         </v-slide-y-transition>
       </v-container>
@@ -53,17 +42,17 @@
   import UserLoggedIn from './UserLoggedIn.vue'
 
   export default {
+    props: ['username'],
     data () {
       return {
-        username: "Pablonski",
         clipped: true,
         drawer: true,
         fixed: false,
         items: [
-          { icon: 'notifications', title: 'Pending orders'},
-          { icon: 'note_add', title: 'Add order'},
-          { icon: 'history', title: 'Order historic'},
-          { icon: 'settings', title: 'Product configurator'}
+          { icon: 'notifications', title: 'Pending orders', to: '/orders/pending'},
+          { icon: 'note_add', title: 'Add order', to: '/order/new'},
+          { icon: 'history', title: 'Order historic', to: '/history'},
+          { icon: 'settings', title: 'Settings', to: '/settings'}
         ],
         miniVariant: false,
       }
