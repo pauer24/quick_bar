@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-layout row>
+    <v-layout row wrap>
       <v-flex xs12 sm6>
         <product-configurator></product-configurator>
       </v-flex>

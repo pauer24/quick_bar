@@ -45,9 +45,9 @@
 </template>
 
 <script>
-import MainLayout from "./components/layout/MainLayout.vue";
-import { mapActions, mapGetters } from "vuex";
-import firebase from "firebase";
+import MainLayout from './components/layout/MainLayout.vue';
+import { mapActions } from 'vuex';
+import firebase from 'firebase';
 
 export default {
   data() {
@@ -62,19 +62,10 @@ export default {
   created() {
     this.firestoreConfig = this.getFirestoreConfigFromFile();
     this.showConfigSection = this.firestoreConfig == null && this.isValidFirestoreConfig();
-
     this.isValid();
-
-    // firebase.firestore().collection('products')
-    // .add({
-    //   name: 'Onion',
-    //   imageUrl: 'http://www.ourbwg.ca/wp-content/uploads/2015/06/Fried-Onions-720x340.jpg',
-    //   price: 0.5,
-    //   extras: null,
-    //   allowNotes: false
-    // })
   },
   methods: {
+    ...mapActions({ setProducts: 'setProducts' }),
     getFirestoreConfigFromFile() {
       try {
         return require("../public/firestoreConfig.json");
@@ -97,6 +88,20 @@ export default {
       firebase.initializeApp(this.firestoreConfig);
       firebase.firestore().settings({ timestampsInSnapshots: true });
       this.firestoreInitialized = true;
+
+      this.updateStoreFromFirestore();
+    },
+    updateStoreFromFirestore() {
+      let component = this;
+      firebase.firestore().collection('products').onSnapshot(function(snap) {
+        let updatedProducts = snap.docs.map(doc => {
+          let p = doc.data();
+          p.id = doc.id;
+          return p;
+        });
+
+        component.setProducts(updatedProducts);
+      });
     },
     isValidFirestoreConfig() {
       let result =

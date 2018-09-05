@@ -1,33 +1,36 @@
-import firebase from 'firebase';
-import Enumerable from 'linq';
+import firebase from 'firebase'
+
+const products = () => firebase.firestore().collection('products');
 
 const state = {
-  username: null
+  products: []
 };
 
 const mutations = {
-  'RESET_APP' (state) {
-    state.username = null
-  },
-  'INITIALIZE_APP' (state, username) {
-    state.username = username;
+  'SET_PRODUCTS' (state, products) {
+    state.products = products;
   }
 }
 
 const actions = {
-  resetApp({commit}) {
-    commit('RESET_APP');
+  setProducts({commit}, products) {
+    commit('SET_PRODUCTS', products);
   },
-  initializeApp({commit}, username) {
-    commit('INITIALIZE_APP', username);
+  saveProduct({commit}, product) {
+    products().add(product)
+      .then(function(docRef) { console.debug('Product added successfully.', docRef);})
+      .catch(function(error) { console.error('While adding new product.', error);})
+    ;
+  },
+  updateProduct({commit}, product) {
+    products().doc(product.id).update(product)
+      .then(function(docRef) { console.debug('Product added successfully.', docRef);})
+      .catch(function(error) { console.error('While adding new product.', error);})
   }
 }
 
 const getters = {
-  productsCollection: state => {
-    return firebase.firestore()
-    .collection('products')
-  }
+  products(state) { return state.products }
 }
 
 export default {
