@@ -26,6 +26,11 @@ const actions = {
     products().doc(product.id).update(product)
       .then(function(docRef) { console.debug('Product added successfully.', docRef);})
       .catch(function(error) { console.error('While adding new product.', error);})
+  },
+  deleteProduct({commit}, product) {
+    products().doc(product.id).delete()
+      .then(function(docRef) { console.debug('Product added successfully.', docRef);})
+      .catch(function(error) { console.error('While adding new product.', error);})
   }
 }
 

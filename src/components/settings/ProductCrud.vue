@@ -27,11 +27,14 @@
         </v-layout>
         <v-layout>
           <v-flex xs12>
-            <v-select v-model="product.extras" :items="products" item-text="name" item-value="id" persistent-hint extras label="Extras" chips multiple></v-select>
+            <v-select v-model="product.extras" :items="extraProducts" item-text="name" item-value="id" persistent-hint extras label="Extras" chips multiple :disabled="!product.allowNotes"></v-select>
           </v-flex>
         </v-layout>
         <v-btn @click="submit" :disabled="!valid">{{btnLabel}}</v-btn>
       </v-form>
+      <v-btn absolute dark fab bottom right color="red darken-4" @click="deleteDialog = true">
+        <v-icon>delete</v-icon>
+      </v-btn>
     </v-container>
     <v-snackbar v-model="snackbar" color="success" :timeout="2000">
       The product has been successfully {{actionPerformed}}
@@ -42,6 +45,17 @@
           Loading product
           <v-progress-linear indeterminate color="white" class="mb-0"></v-progress-linear>
         </v-card-text>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="deleteDialog" max-width="290">
+      <v-card>
+        <v-card-title class="headline">Are you sure?</v-card-title>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="red darken-1" flat="flat" @click="remove">
+            CONFIRM
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
   </div>
@@ -57,6 +71,7 @@ export default {
       snackbar: false,
       valid: true,
       product: {},
+      deleteDialog: false,
       requiredField: [v => !!v || "Field is required"]
     };
   },
@@ -68,7 +83,7 @@ export default {
           p => p.id == this.$route.params.id
         );
 
-        if(!this.loading) return;
+        if (!this.loading) return;
         setTimeout(tryUpdateRecursive, 200);
       };
 
@@ -77,6 +92,10 @@ export default {
   },
   computed: {
     ...mapGetters({ products: "products" }),
+    extraProducts: function() {
+      let component = this;
+      return Enumerable.from(this.products).where(p => !p.allowNotes && (component.isEdition ? p.id != component.product.id : true)).toArray();
+    },
     title: function() {
       return this.isEdition ? "Edit" : "Create";
     },
@@ -93,7 +112,9 @@ export default {
   methods: {
     ...mapActions({
       saveProduct: 'saveProduct',
-      updateProduct: 'updateProduct' }),
+      updateProduct: 'updateProduct',
+      deleteProduct: 'deleteProduct'
+    }),
     submit() {
       if (this.$refs.form.validate()) {
         if (!this.isEdition) {
@@ -105,6 +126,22 @@ export default {
           this.$router.go(-1);
         }
       }
+    },
+    remove() {
+      let component = this;
+      let productId = this.product.id;
+      Enumerable.from(this.products).forEach(p => {
+        if (!!p.extras && p.extras.includes(productId)) {
+          p.extras.splice(p.extras.indexOf(productId), 1);
+          component.updateProduct(p);
+          console.debug('Product removed as extra from', p);
+        }
+      })
+
+      this.deleteProduct(this.product);
+      console.debug('Product removed', this.product);
+      this.deleteDialog = false;
+      this.$router.go(-1);
     }
   }
 };

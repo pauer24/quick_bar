@@ -25,18 +25,11 @@
         </v-list-group>
       </v-list>
     </v-navigation-drawer>
-    <!-- <v-toolbar fixed app :clipped-left="clipped" > -->
     <v-toolbar fixed app clipped-left>
       <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
       <v-btn icon @click.stop="miniVariant = !miniVariant">
         <v-icon v-html="miniVariant ? 'chevron_right' : 'chevron_left'"></v-icon>
       </v-btn>
-      <!-- <v-btn icon @click.stop="clipped = !clipped">
-        <v-icon>web</v-icon>
-      </v-btn> -->
-      <!-- <v-btn icon @click.stop="fixed = !fixed">
-        <v-icon>remove</v-icon>
-      </v-btn> -->
       <v-toolbar-title>Q-Bar</v-toolbar-title>
       <v-spacer></v-spacer>
       <user-logged-in-menu :username="username" @userLoggedOut="logOut" />
@@ -73,8 +66,8 @@ export default {
           icon: "settings",
           title: "Settings",
           innerItems: [
-            { title: "Product configurator", to: "/settings/products" },
-            { title: "Menu configurator", to: "/settings/menu" }
+            { title: "Menu configurator", to: "/settings/menu" },
+            { title: "Product configurator", to: "/settings/products" }
           ]
         }
       ],
