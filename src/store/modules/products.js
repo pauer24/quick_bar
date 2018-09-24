@@ -36,7 +36,8 @@ const actions = {
 }
 
 const getters = {
-  products(state) { return state.products }
+  products(state) { return state.products },
+  product(state, productId) { console.warn('Getting product', productId); return null; }
 }
 
 export default {

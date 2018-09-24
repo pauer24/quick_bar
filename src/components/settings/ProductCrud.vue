@@ -2,7 +2,7 @@
   <div>
     <v-container row wrap v-if="!loading">
       <h1>{{ title }} a product</h1>
-      <v-form ref="form" v-model="valid" lazy-validation>
+      <v-form ref="form" v-model="valid">
         <v-layout>
           <v-flex xs12>
             <v-text-field v-model="product.name" label="Name" :rules="requiredField" required></v-text-field>
@@ -69,7 +69,7 @@ export default {
     return {
       isEdition: false,
       snackbar: false,
-      valid: true,
+      valid: false,
       product: {},
       deleteDialog: false,
       requiredField: [v => !!v || "Field is required"]

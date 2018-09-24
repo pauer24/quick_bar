@@ -66,7 +66,7 @@ export default {
     this.isValid();
   },
   methods: {
-    ...mapActions({ setProducts: 'setProducts' }),
+    ...mapActions({ setProducts: 'setProducts', setMenu: 'setMenu' }),
     getFirestoreConfigFromFile() {
       try {
         return require("../public/firestoreConfig.json");
@@ -94,7 +94,9 @@ export default {
     },
     updateStoreFromFirestore() {
       let component = this;
-      firebase.firestore().collection('products').onSnapshot(function(snap) {
+      let firestore = firebase.firestore();
+
+      firestore.collection('products').onSnapshot(function(snap) {
         let updatedProducts = snap.docs.map(doc => {
           let p = doc.data();
           p.id = doc.id;
@@ -102,6 +104,16 @@ export default {
         });
 
         component.setProducts(updatedProducts);
+      });
+
+      firestore.collection('menu').onSnapshot(function(snap) {
+        let updatedMenu = snap.docs.map(doc => {
+          let m = doc.data();
+          m.id = doc.id;
+          return m;
+        })
+
+        component.setMenu(updatedMenu[0]);
       });
     },
     isValidFirestoreConfig() {

@@ -66,8 +66,7 @@ export default {
           icon: "settings",
           title: "Settings",
           innerItems: [
-            { title: "Menu configurator", to: "/settings/menu" },
-            { title: "Product configurator", to: "/settings/products" }
+            { title: "Menu configurator", to: "/settings/menu" }
           ]
         }
       ],
