@@ -19,7 +19,7 @@
     <v-layout>
       <v-flex xs12>
         <ul v-show="open" v-if="isFolder">
-          <menu-tree class="item" v-for="(child, index) in model.children" :key="index" :index="index" :model="child" />
+          <menu-tree @groupEdited="childGroupEdited" class="item" v-for="(child, index) in model.children" :key="index" :index="index" :model="child" />
         </ul>
       </v-flex>
     </v-layout>
@@ -64,7 +64,9 @@ export default {
       this.$parent.model.children.splice(this.index, 1);
     },
     editGroup() {
-      menuTreeEventBus.$emit("editGroup", this);
+      menuTreeEventBus.$emit("editGroup", this.model, (newValue) => {
+        this.$emit('groupEdited', newValue, this.index)
+      });
     },
     nodeClicked: function() {
       menuTreeEventBus.$emit("nodeSelected", this, this.$parent, this.index);
@@ -73,12 +75,18 @@ export default {
       if (!this.isFolder) throw "Cannot add children to non folder item";
 
       this.model.children.splice(index, 0, item);
+    },
+    childGroupEdited(childValue, childIndex) {
+      debugger;
+      this.model.children[childIndex] = childValue;
+      this.$emit('groupEdited', this.model, this.index)
     }
   },
   created() {
     menuTreeEventBus.$on("nodeSelected", (node, parent, index) => {
       this.isSelected = node === this;
     });
+
   },
   components: {
     MenuTree

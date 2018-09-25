@@ -4,15 +4,29 @@
       <v-layout>
         <v-flex xs5>
           <h3>Menu</h3>
-          <v-btn @click="addGroupDialog=true">Add group</v-btn>
+          <v-layout>
+            <v-flex sm4>
+              <v-btn @click="addGroupDialog=true">Add group</v-btn>
+            </v-flex>
+            <v-flex offset-sm4 sm1>
+              <v-btn flat fab v-if="itemUppable" @click="moveItem(-1)" >
+                <v-icon>arrow_upward</v-icon>
+              </v-btn>
+            </v-flex>
+            <v-flex sm1>
+              <v-btn flat fab v-if="itemDownable" @click="moveItem(1)" >
+                <v-icon>arrow_downward</v-icon>
+              </v-btn>
+            </v-flex>
+          </v-layout>
           <!-- <tree-view :node="menu" :getLabel="n => n.name" :getNodes="n => n.innerItems"></tree-view> -->
           <ul class="unstyled-ul">
-            <menu-tree class="item" :model="menu" />
+            <menu-tree class="item" :model="menu" @groupEdited="groupEdited" />
           </ul>
 
-      <v-btn dark bottom left fab @click="saveMenu">
-        <v-icon>save</v-icon>
-      </v-btn>
+          <v-btn dark bottom left fab @click="saveMenu">
+            <v-icon>save</v-icon>
+          </v-btn>
         </v-flex>
         <v-divider inset vertical></v-divider>
         <v-flex xs5>
@@ -44,12 +58,12 @@
             <v-container fluid>
               <v-layout>
                 <v-flex xs12 sm6>
-                  <v-text-field v-model="newGroup.name" label="Name" :rules="requiredField" required></v-text-field>
-                  <v-text-field v-model="newGroup.imageUrl" label="Image URL" :rules="requiredField" required></v-text-field>
+                  <v-text-field v-model="currentGroup.name" label="Name" :rules="requiredField" required></v-text-field>
+                  <v-text-field v-model="currentGroup.imageUrl" label="Image URL" :rules="requiredField" required></v-text-field>
                 </v-flex>
                 <v-flex xs12 offset-sm2 sm4>
                   <p>Actual image</p>
-                  <img :src="newGroup.imageUrl" height="200px" alt="">
+                  <img :src="currentGroup.imageUrl" height="200px" alt="">
                 </v-flex>
               </v-layout>
             </v-container>
@@ -72,7 +86,6 @@ import { mapActions, mapGetters } from "vuex";
 import { menuTreeEventBus } from "../../eventBuses";
 import Enumerable from "linq";
 
-import TreeView from "./TreeView.vue";
 import MenuTree from "./MenuTree.vue";
 import ProductTile from "./ProductTile.vue";
 
@@ -83,21 +96,21 @@ export default {
       selectedParentNode: null,
       selectedNodeIndex: -1,
       addGroupDialog: false,
-      groupToUpdate: {},
       validGroupForm: false,
       snackbar: false,
-      snackbarMessage: '',
-      newGroup: {},
+      snackbarMessage: "",
+      currentGroup: {},
+      updatedMenu: null,
+      updateGroupMethod: null,
+      groupToUpdateModel: null,
       requiredField: [v => !!v || "Field is required"],
-      updatedMenu: null
     };
   },
   methods: {
-    ...mapActions({ updateMenu: 'updateMenu'}),
+    ...mapActions({ updateMenu: "updateMenu" }),
     addItem(item) {
-      debugger
       if (!this.isMenuItemSelected) {
-        this.menu.children.splice(0,0,item);
+        this.menu.children.splice(0, 0, item);
       } else if (this.selectedNode.isFolder) {
         this.selectedNode.addChild(item, 0);
       } else {
@@ -105,56 +118,66 @@ export default {
       }
     },
     addGroup() {
-      if (this.groupToUpdate === null) {
-        this.newGroup.children = [];
-        this.addItem(this.newGroup);
+      if (this.updateGroupMethod === null) {
+        this.currentGroup.children = [];
+        this.addItem(this.currentGroup);
       } else {
-        this.groupToUpdate.model = this.newGroup;
+        this.updateGroupMethod(this.currentGroup);
       }
 
       // restart everything else
-      this.groupToUpdate = null;
-      this.newGroup = {};
+      this.updateGroupMethod = null;
+      this.currentGroup = {};
       this.addGroupDialog = false;
     },
     createProduct() {
       this.$router.push("/settings/product/new");
     },
     saveMenu() {
-      this.updateMenu(this.menu, () => console.error('Menu saved'));
-      console.warn('Saving menu:', this.menu.children);
+      this.updateMenu({menu: this.menu, onUpdate: () => {
+        this.snackbarMessage = "The menu has been saved successfully";
+        this.snackbar = true;
+        }
+      });
+    },
+    groupEdited(newValue, index) {
+      this.menu.children[index] = newValue;
+    },
+    moveItem(positionsToMove) {
+      let copy = this.selectedParentNode.model.children;
 
-      this.snackbarMessage = "The menu has been saved successfully"
-      this.snackbar = true;
+      copy.splice(
+        this.selectedNodeIndex + positionsToMove, 0,
+        copy.splice(this.selectedNodeIndex, 1)[0]);
+        debugger;
     }
   },
   computed: {
     ...mapGetters({ products: "products", lastStoredMenu: "menu" }),
     menu: {
       get: function() {
-        return this.updatedMenu === null ? this.lastStoredMenu : this.updatedMenu;
+        return this.updatedMenu === null
+          ? this.lastStoredMenu
+          : this.updatedMenu;
       },
       set: function(value) {
         this.updatedMenu = value;
       }
     },
-    // menu: function() {
-      // let children = !!this.storedMenu.children ? this.storedMenu : [];
-      // let a = {name: null, children: children};
-      // console.error('Menu:', a);
-      // return this.storedMenu;
-    // },
     isMenuItemSelected: function() {
       return this.selectedNode !== null;
-    }
-  },
-  watch: {
-    lastStoredMenu: function(val) {
-      console.error('Watch triggered')
-      this.menu = val;
+    },
+    itemUppable: function() {
+      return !!this.selectedNode && !!this.selectedParentNode && this.selectedParentNode.model.children.length > 1 && this.selectedNodeIndex > 0 ;
+    },
+    itemDownable: function() {
+      let parentChildrenCount = this.selectedParentNode ? this.selectedParentNode.model.children.length : 0;
+      return !!this.selectedNode && parentChildrenCount > 1 && this.selectedNodeIndex < parentChildrenCount - 1
     }
   },
   created() {
+    let component = this;
+
     menuTreeEventBus.$on(
       "nodeSelected",
       (selectedNode, parentNode, nodeIndex) => {
@@ -164,18 +187,14 @@ export default {
       }
     );
 
-    menuTreeEventBus.$on(
-      "editGroup",
-      (groupNode) => {
-        this.groupToUpdate = groupNode;
-        this.newGroup = Object.assign({}, groupNode.model);
-        this.addGroupDialog = true;
-      }
-    );
+    menuTreeEventBus.$on("editGroup", (groupModel, updateGroupMethod) => {
+      this.currentGroup = groupModel;
+      this.updateGroupMethod = updateGroupMethod;
+      this.addGroupDialog = true;
+    });
   },
   components: {
     ProductTile,
-    TreeView,
     MenuTree
   }
 };
