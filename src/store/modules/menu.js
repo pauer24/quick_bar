@@ -18,7 +18,6 @@ const actions = {
     commit('SET_MENU', menu);
   },
   updateMenu({commit}, obj) {
-    debugger;
     menus().doc('main').update(obj.menu)
       .then(function(docRef) { console.debug('Menu updated successfully.', docRef); obj.onUpdate(); })
       .catch(function(error) { console.error('While updating menu.', error);})

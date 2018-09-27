@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-container row wrap v-if="!loading">
+    <div class="ma-3" row wrap v-if="!loading">
       <h1>{{ title }} a product</h1>
       <v-form ref="form" v-model="valid">
         <v-layout>
@@ -18,16 +18,17 @@
           </v-flex>
         </v-layout>
         <v-layout row wrap>
-          <v-flex xs12 sm6>
+          <v-flex xs6 sm3>
             <v-text-field v-model="product.price" label="Price (€)" type="number" :rules="requiredField" required></v-text-field>
-          </v-flex>
-          <v-flex xs12 offset-sm3 sm3>
-            <v-switch v-model="product.allowNotes" label="Allow notes"></v-switch>
           </v-flex>
         </v-layout>
         <v-layout>
+          <v-switch v-model="product.allowNotes" label="Allow notes"></v-switch>
+          <v-switch v-model="product.isExtra" label="Is extra"></v-switch>
+        </v-layout>
+        <v-layout>
           <v-flex xs12>
-            <v-select v-model="product.extras" :items="extraProducts" item-text="name" item-value="id" persistent-hint extras label="Extras" chips multiple :disabled="!product.allowNotes"></v-select>
+            <product-extras-selection v-model="product.extras" :disabled="product.isExtra" />
           </v-flex>
         </v-layout>
         <v-btn @click="submit" :disabled="!valid">{{btnLabel}}</v-btn>
@@ -35,7 +36,7 @@
       <v-btn absolute dark fab bottom right color="red darken-4" @click="deleteDialog = true">
         <v-icon>delete</v-icon>
       </v-btn>
-    </v-container>
+    </div>
     <v-snackbar v-model="snackbar" color="success" :timeout="2000">
       The product has been successfully {{actionPerformed}}
     </v-snackbar>
@@ -64,6 +65,8 @@
 import { mapGetters, mapActions } from "vuex";
 import Enumerable from "linq";
 
+import ProductExtrasSelection from '../ProductExtrasSelection.vue'
+
 export default {
   data() {
     return {
@@ -78,12 +81,10 @@ export default {
   created() {
     this.isEdition = !!this.$route.params.id;
     if (this.isEdition) {
+      let component = this;
       let tryUpdateRecursive = () => {
-        this.product = Enumerable.from(this.products).firstOrDefault(
-          p => p.id == this.$route.params.id
-        );
-
-        if (!this.loading) return;
+        component.product = component.productById(component.$route.params.id);
+        if (!component.loading) return;
         setTimeout(tryUpdateRecursive, 200);
       };
 
@@ -91,11 +92,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters({ products: "products" }),
-    extraProducts: function() {
-      let component = this;
-      return Enumerable.from(this.products).where(p => !p.allowNotes && (component.isEdition ? p.id != component.product.id : true)).toArray();
-    },
+    ...mapGetters({ products: "products", productById: "product" }),
     title: function() {
       return this.isEdition ? "Edit" : "Create";
     },
@@ -111,19 +108,23 @@ export default {
   },
   methods: {
     ...mapActions({
-      saveProduct: 'saveProduct',
-      updateProduct: 'updateProduct',
-      deleteProduct: 'deleteProduct'
+      saveProduct: "saveProduct",
+      updateProduct: "updateProduct",
+      deleteProduct: "deleteProduct"
     }),
     submit() {
+      if (this.product.isExtra) {
+        delete this.product.extras;
+      }
       if (this.$refs.form.validate()) {
+        let component = this;
         if (!this.isEdition) {
-          this.saveProduct(this.product);
-          this.$refs.form.reset();
-          this.snackbar = true;
+          this.saveProduct({ product: this.product, onSuccess: () => {
+            component.$refs.form.reset();
+            component.snackbar = true;
+          }});
         } else {
-          this.updateProduct(this.product);
-          this.$router.go(-1);
+          this.updateProduct({ product: this.product, onSuccess: () => { component.$router.go(-1)}});
         }
       }
     },
@@ -134,15 +135,22 @@ export default {
         if (!!p.extras && p.extras.includes(productId)) {
           p.extras.splice(p.extras.indexOf(productId), 1);
           component.updateProduct(p);
-          console.debug('Product removed as extra from', p);
+          console.debug("Product removed as extra from product", p);
         }
-      })
+      });
 
-      this.deleteProduct(this.product);
-      console.debug('Product removed', this.product);
-      this.deleteDialog = false;
-      this.$router.go(-1);
+      this.deleteProduct({
+        product: this.product,
+        onSuccess: () => {
+          console.debug("Product removed", this.product);
+          this.deleteDialog = false;
+          this.$router.go(-1);
+        }
+      });
     }
+  },
+  components: {
+    ProductExtrasSelection
   }
 };
 </script>

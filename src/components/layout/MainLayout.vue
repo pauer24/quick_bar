@@ -25,13 +25,20 @@
         </v-list-group>
       </v-list>
     </v-navigation-drawer>
-    <v-toolbar fixed app clipped-left>
+    <current-order :show-shopping-cart="showShoppingCart" @itemsCountUpdated="updateShoppingCartItems" />
+    <v-toolbar fixed app clipped-left clipped-right>
       <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
       <v-btn icon @click.stop="miniVariant = !miniVariant">
         <v-icon v-html="miniVariant ? 'chevron_right' : 'chevron_left'"></v-icon>
       </v-btn>
       <v-toolbar-title>Q-Bar</v-toolbar-title>
       <v-spacer></v-spacer>
+      <v-badge right overlap>
+        <span slot="badge" v-if="shoppingCartItemsCount>0">{{ shoppingCartItemsCount }}</span>
+        <v-btn icon @click="hideShoppingCart = !hideShoppingCart">
+          <v-icon>shopping_cart</v-icon>
+        </v-btn>
+      </v-badge>
       <user-logged-in-menu :username="username" @userLoggedOut="logOut" />
     </v-toolbar>
     <v-content>
@@ -44,6 +51,7 @@
 
 <script>
 import UserLoggedInMenu from "./UserLoggedInMenu.vue";
+import CurrentOrder from "../CurrentOrder.vue";
 
 export default {
   props: ["username"],
@@ -52,6 +60,8 @@ export default {
       clipped: true,
       drawer: true,
       fixed: false,
+      hideShoppingCart: false,
+      shoppingCartItemsCount: 1,
       singleItems: [
         {
           icon: "notifications",
@@ -65,9 +75,7 @@ export default {
         {
           icon: "settings",
           title: "Settings",
-          innerItems: [
-            { title: "Menu configurator", to: "/settings/menu" }
-          ]
+          innerItems: [{ title: "Menu configurator", to: "/settings/menu" }]
         }
       ],
       miniVariant: false
@@ -76,10 +84,19 @@ export default {
   methods: {
     logOut() {
       this.$emit("logOut");
+    },
+    updateShoppingCartItems(newCount) {
+      this.shoppingCartItemsCount = newCount
+    }
+  },
+  computed: {
+    showShoppingCart: function() {
+      return !this.hideShoppingCart && this.shoppingCartItemsCount > 0;
     }
   },
   components: {
-    UserLoggedInMenu
+    UserLoggedInMenu,
+    CurrentOrder
   }
 };
 </script>

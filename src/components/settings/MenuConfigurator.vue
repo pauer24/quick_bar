@@ -2,19 +2,19 @@
   <div>
     <v-container>
       <v-layout>
-        <v-flex xs5>
+        <v-flex xs6>
           <h3>Menu</h3>
           <v-layout>
             <v-flex sm4>
               <v-btn @click="addGroupDialog=true">Add group</v-btn>
             </v-flex>
-            <v-flex offset-sm4 sm1>
-              <v-btn flat fab v-if="itemUppable" @click="moveItem(-1)" >
+            <v-flex offset-sm5 sm1>
+              <v-btn icon flat v-if="itemUppable" @click="moveItem(-1)" >
                 <v-icon>arrow_upward</v-icon>
               </v-btn>
             </v-flex>
             <v-flex sm1>
-              <v-btn flat fab v-if="itemDownable" @click="moveItem(1)" >
+              <v-btn icon flat v-if="itemDownable" @click="moveItem(1)" >
                 <v-icon>arrow_downward</v-icon>
               </v-btn>
             </v-flex>
@@ -23,19 +23,18 @@
           <ul class="unstyled-ul">
             <menu-tree class="item" :model="menu" @groupEdited="groupEdited" />
           </ul>
-
           <v-btn dark bottom left fab @click="saveMenu">
             <v-icon>save</v-icon>
           </v-btn>
         </v-flex>
-        <v-divider inset vertical></v-divider>
-        <v-flex xs5>
+        <v-divider inset vertical class="mx-2"></v-divider>
+        <v-flex xs6>
           <div>
             <v-chip small>x</v-chip>: number of extras &nbsp;&nbsp;&nbsp;
             <v-icon>notes</v-icon>: allows notes
           </div>
           <v-list>
-            <div v-for="p in products" :key="p.id">
+            <div v-for="p in sortedProducts" :key="p.id">
               <product-tile :product="p" @includeProduct="addItem" />
               <v-divider class="mx-5" />
             </div>
@@ -154,6 +153,9 @@ export default {
   },
   computed: {
     ...mapGetters({ products: "products", lastStoredMenu: "menu" }),
+    sortedProducts: function() {
+      return Enumerable.from(this.products).orderBy(p => !!p.isExtra).toArray();
+    },
     menu: {
       get: function() {
         return this.updatedMenu === null

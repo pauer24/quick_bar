@@ -77,7 +77,7 @@ export default {
       this.model.children.splice(index, 0, item);
     },
     childGroupEdited(childValue, childIndex) {
-      debugger;
+
       this.model.children[childIndex] = childValue;
       this.$emit('groupEdited', this.model, this.index)
     }

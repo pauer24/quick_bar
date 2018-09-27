@@ -1,7 +1,7 @@
 <template>
   <v-list-tile>
     <v-list-tile-action>
-      <v-icon @click="includeProduct">arrow_back_ios</v-icon>
+      <v-icon @click="includeProduct" v-if="!product.isExtra">arrow_back_ios</v-icon>
     </v-list-tile-action>
     <v-list-tile-avatar>
       <v-img :src="product.imageUrl"></v-img>
