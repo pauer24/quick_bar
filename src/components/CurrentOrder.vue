@@ -18,12 +18,17 @@
         <v-chip color="green" text-color="white">{{item.count}}</v-chip>
       </v-list-tile>
     </v-list>
+    <div>
+      <v-divider></v-divider>
+      <p>TOTAL: {{ orderPrice }} €</p>
+    </div>
   </v-navigation-drawer>
 </template>
 
 <script>
 import Enumerable from "linq";
 import { shoppingCartEventBus } from "../eventBuses";
+import { priceCalculator } from "../services/priceCalculator";
 
 export default {
   props: ["show-shopping-cart"],
@@ -58,8 +63,13 @@ export default {
           return !p.extras || p.extras.length === 0;
         };
         for (let element of sameProducts) {
-          if (emptyProduct(element) && emptyProduct(product) || // both products are empty
-              Enumerable.from(product.extras).all(extraId => Enumerable.from(element.extras).any(eId => eId === extraId))) { // both products have same extras
+          if (
+            (emptyProduct(element) && emptyProduct(product)) || // both products are empty
+            Enumerable.from(product.extras).all(extraId =>
+              Enumerable.from(element.extras).any(eId => eId === extraId)
+            )
+          ) {
+            // both products have same extras
             sameProduct = element;
           }
         }
@@ -92,6 +102,15 @@ export default {
     buildOrderItemFromProduct(product) {
       product.count = 1;
       return product;
+    }
+  },
+  computed: {
+    orderPrice: function() {
+      let price = 0;
+      for(let item of this.items) {
+        price += priceCalculator.compute(item) * item.count;
+      }
+      return price;
     }
   },
   created() {

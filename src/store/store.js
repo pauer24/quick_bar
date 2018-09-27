@@ -3,9 +3,6 @@ import Vuex from 'vuex';
 
 import products from './modules/products';
 import menu from './modules/menu';
-// import portfolio from './modules/portfolio';
-
-// import * as actions from './actions';
 
 Vue.use(Vuex);
 

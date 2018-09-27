@@ -9,11 +9,13 @@
           <product-extras-selection v-model="item.extras" :extras="productAllowedExtras"></product-extras-selection>
         </v-layout>
         <v-text-field v-if="item.allowNotes" v-model="item.notes" label="Notes" />
-        <v-layout v-if="isOrder">
-          <span class="light-border rounded-border">
+        <v-layout >
+          <span class="light-border rounded-border" v-if="isOrder">
             <v-icon @click="addToCount(-1)" class="mx-2">remove</v-icon><span style="font-size:23px" class="x-border px-1"> {{item.count}} </span>
             <v-icon class="mx-2" @click="addToCount(1)">add</v-icon>
           </span>
+          <v-spacer></v-spacer>
+          {{ itemPrice }}
         </v-layout>
       </v-card-text>
       <v-card-actions>
@@ -32,6 +34,7 @@
 <script>
 import { mapGetters } from "vuex";
 import { shoppingCartEventBus } from "../eventBuses";
+import { priceCalculator } from "../services/priceCalculator";
 
 import ProductExtrasSelection from "./ProductExtrasSelection.vue";
 
@@ -89,6 +92,9 @@ export default {
     },
     isOrder: function() {
       return typeof this.orderIndex === "number";
+    },
+    itemPrice: function() {
+      if (this.item) return priceCalculator.compute(this.item) * this.item.count;
     }
   },
   created() {
