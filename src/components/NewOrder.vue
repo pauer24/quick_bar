@@ -74,7 +74,6 @@ export default {
       shoppingCartEventBus.productSelected(product);
     },
     saveProduct(newValues) {
-      console.error('New product to save')
       this.selectedProduct = null;
     }
   },

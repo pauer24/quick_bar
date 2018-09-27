@@ -8,7 +8,7 @@
         <v-list-tile-content>
           <v-list-tile-title> {{ item.name }} </v-list-tile-title>
           <v-list-tile-sub-title>
-            <v-chip small v-if="item.extras">+{{ item.extras.length }}</v-chip>
+            <v-chip small v-if="item.extras && item.extras.length > 0">+{{ item.extras.length }}</v-chip>
             <v-icon v-if="item.notes">notes</v-icon>
             <v-layout>
               <v-flex offset-xs10 xs2></v-flex>
@@ -31,13 +31,14 @@ export default {
     return {
       items: [
         {
-          id: "some random id",
-          name: "Un títol llarg com la bíblia, que hauria de sortir a 2 línes",
+          allowNotes: true,
+          extras: ["HuqPlrlQy4XOUTyVjYEy", "FjEYw1qHv0Ws84WbkzCU"],
+          id: "2HZqD5bxlm7zFpH4IWoL",
           imageUrl:
-            "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/BLT_sandwich_on_toast.jpg/220px-BLT_sandwich_on_toast.jpg",
-          extras: [{}, {}],
-          notes: "bla bla bla bla bla bla",
-          count: 5
+            "http://elmejorbocadillo.com/151-thickbox_default/bocadillo-de-butifarra.jpg",
+          name: "Bocadillo de longaniza",
+          price: "4.5",
+          count: 1
         }
       ]
     };
@@ -53,23 +54,28 @@ export default {
         let sameProducts = items.filter(i => i.id === product.id);
 
         if (sameProducts.length === 0) return null;
-        let emptyProduct = (p) => { return !p.extras || p.extras.length === 0; }
-        for(let element of sameProducts) {
-          if (emptyProduct(element) && emptyProduct(product)) sameProduct = element;
+        let emptyProduct = p => {
+          return !p.extras || p.extras.length === 0;
         };
+        for (let element of sameProducts) {
+          if (emptyProduct(element) && emptyProduct(product) || // both products are empty
+              Enumerable.from(product.extras).all(extraId => Enumerable.from(element.extras).any(eId => eId === extraId))) { // both products have same extras
+            sameProduct = element;
+          }
+        }
 
+        // returning product found with its index
         if (sameProduct === null) return null;
-        for(let i = 0; i < items.length; i++) {
+        for (let i = 0; i < items.length; i++) {
           if (items[i] === sameProduct) {
             return {
               item: items[i],
               index: i
-            }
+            };
           }
         }
-      debugger;
 
-        throw 'Product not found in items', sameProduct
+        throw ("Product not found in items", sameProduct);
       };
 
       let sameItem = itemWithIndex(product);
@@ -89,13 +95,21 @@ export default {
     }
   },
   created() {
+    let component = this;
     shoppingCartEventBus.$on("addProduct", product => {
       this.addProduct(product);
+    });
+    shoppingCartEventBus.$on("orderItemUpdated", (orderItem, index) => {
+      if (orderItem.count <= 0) {
+        component.items.splice(index, 1);
+      } else {
+        component.items.splice(index, 1, orderItem);
+      }
     });
   },
   watch: {
     items: function(newValue) {
-      this.$emit('itemsCountUpdated', newValue.length);
+      this.$emit("itemsCountUpdated", newValue.length);
     }
   }
 };
