@@ -11,9 +11,11 @@ export const menuTreeEventBus = new Vue({
 export const shoppingCartEventBus = new Vue({
   methods: {
     addProduct(product) {
+      console.warn('Adding product. Emitting event');
       this.$emit('addProduct', product);
     },
     productSelected(product) {
+      console.warn('Product selected. Emitting event')
       this.$emit('productSelected', product);
     },
     updateOrderItem(item, index) {
@@ -25,5 +27,14 @@ export const shoppingCartEventBus = new Vue({
     orderItemUpdated(orderItem, index) {
       this.$emit('orderItemUpdated', orderItem, index);
     }
+  }
+})
+
+export const action = new Vue({
+  methods: {
+    allowUndo(actionDescription, undoAction) {
+      this.$emit('allowUndo', actionDescription, undoAction );
+    }
+
   }
 })

@@ -149,6 +149,16 @@ export default {
         this.selectedNodeIndex + positionsToMove, 0,
         copy.splice(this.selectedNodeIndex, 1)[0]);
         debugger;
+    },
+    onNodeSelected(selectedNode, parentNode, nodeIndex) {
+      this.selectedNode = selectedNode;
+      this.selectedParentNode = parentNode;
+      this.selectedNodeIndex = nodeIndex;
+    },
+    onEditGroup(groupModel, updateGroupMethod) {
+      this.currentGroup = groupModel;
+      this.updateGroupMethod = updateGroupMethod;
+      this.addGroupDialog = true;
     }
   },
   computed: {
@@ -178,22 +188,12 @@ export default {
     }
   },
   created() {
-    let component = this;
-
-    menuTreeEventBus.$on(
-      "nodeSelected",
-      (selectedNode, parentNode, nodeIndex) => {
-        this.selectedNode = selectedNode;
-        this.selectedParentNode = parentNode;
-        this.selectedNodeIndex = nodeIndex;
-      }
-    );
-
-    menuTreeEventBus.$on("editGroup", (groupModel, updateGroupMethod) => {
-      this.currentGroup = groupModel;
-      this.updateGroupMethod = updateGroupMethod;
-      this.addGroupDialog = true;
-    });
+    menuTreeEventBus.$on("nodeSelected", this.onNodeSelected);
+    menuTreeEventBus.$on("editGroup", this.onEditGroup);
+  },
+  created() {
+    menuTreeEventBus.$off("nodeSelected", this.onNodeSelected);
+    menuTreeEventBus.$off("editGroup", this.onEditGroup);
   },
   components: {
     ProductTile,

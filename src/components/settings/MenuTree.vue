@@ -80,13 +80,16 @@ export default {
 
       this.model.children[childIndex] = childValue;
       this.$emit('groupEdited', this.model, this.index)
+    },
+    onNodeSelected(node, parent, index) {
+      this.isSelected = node === this;
     }
   },
   created() {
-    menuTreeEventBus.$on("nodeSelected", (node, parent, index) => {
-      this.isSelected = node === this;
-    });
-
+    menuTreeEventBus.$on("nodeSelected", this.onNodeSelected);
+  },
+  beforeDestroy() {
+    menuTreeEventBus.$off("nodeSelected", this.onNodeSelected);
   },
   components: {
     MenuTree

@@ -25,7 +25,7 @@
         </v-list-group>
       </v-list>
     </v-navigation-drawer>
-    <current-order :show-shopping-cart="showShoppingCart" @itemsCountUpdated="updateShoppingCartItems" />
+    <current-order :value="showShoppingCart" @input="updateCurrentOrderVisibility" @itemsCountUpdated="updateShoppingCartItems" />
     <v-toolbar fixed app clipped-left clipped-right>
       <v-toolbar-side-icon @click.stop="drawer = !drawer"></v-toolbar-side-icon>
       <v-btn icon @click.stop="miniVariant = !miniVariant">
@@ -46,12 +46,16 @@
         <router-view></router-view>
       </v-slide-y-transition>
     </v-content>
+    <undo-action-snack v-model="snackUndoObj"></undo-action-snack>
   </div>
 </template>
 
 <script>
+import { action } from "../../eventBuses";
+
 import UserLoggedInMenu from "./UserLoggedInMenu.vue";
 import CurrentOrder from "../CurrentOrder.vue";
+import UndoActionSnack from "../common/UndoActionSnack.vue";
 
 export default {
   props: ["username"],
@@ -61,7 +65,7 @@ export default {
       drawer: true,
       fixed: false,
       hideShoppingCart: false,
-      shoppingCartItemsCount: 1,
+      shoppingCartItemsCount: 0,
       singleItems: [
         {
           icon: "notifications",
@@ -78,7 +82,8 @@ export default {
           innerItems: [{ title: "Menu configurator", to: "/settings/menu" }]
         }
       ],
-      miniVariant: false
+      miniVariant: false,
+      snackUndoObj: null
     };
   },
   methods: {
@@ -86,8 +91,21 @@ export default {
       this.$emit("logOut");
     },
     updateShoppingCartItems(newCount) {
+      if(this.shoppingCartItemsCount === 0 && newCount > 0) this.hideShoppingCart = false;
       this.shoppingCartItemsCount = newCount
+    },
+    updateCurrentOrderVisibility(newValue) {
+      this.hideShoppingCart = !newValue
+    },
+    showUndoSnack (actionDescription, undoAction) {
+      this.snackUndoObj = { actionDescription, undoAction };
     }
+  },
+  created() {
+    action.$on('allowUndo', showUndoSnack);
+  },
+  beforeDestroy() {
+    action.$off('allowUndo', showUndoSnack);
   },
   computed: {
     showShoppingCart: function() {
@@ -96,7 +114,8 @@ export default {
   },
   components: {
     UserLoggedInMenu,
-    CurrentOrder
+    CurrentOrder,
+    UndoActionSnack
   }
 };
 </script>

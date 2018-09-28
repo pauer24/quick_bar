@@ -1,5 +1,5 @@
 <template>
-  <v-navigation-drawer fixed right v-model="showShoppingCart" clipped app>
+  <v-navigation-drawer fixed right :value="value" @input="emitInput" clipped app>
     <v-list two-line>
       <v-list-tile @click.prevent="showItem(item, index)" v-for="(item, index) in items" :key="index">
         <v-list-tile-avatar>
@@ -18,34 +18,45 @@
         <v-chip color="green" text-color="white">{{item.count}}</v-chip>
       </v-list-tile>
     </v-list>
-    <div>
+    <div class="to-bottom">
       <v-divider></v-divider>
-      <p>TOTAL: {{ orderPrice }} €</p>
+      <div class="mx-2 mt-3">
+        <v-layout align-content-center>
+          <p style="font-size:20px"><strong>TOTAL</strong></p>
+          <v-spacer></v-spacer>
+          <v-divider class="mb-3 mr-3" vertical></v-divider>
+          <p style="font-size:20px">{{ orderPrice }} €</p>
+        </v-layout>
+        <v-layout align-content-center>
+          <v-flex xs2>
+            <v-btn flat small icon color="pink" @click="deleteEntireOrder">
+              <v-icon>delete</v-icon>
+            </v-btn>
+          </v-flex>
+          <v-flex xs8>
+            <v-text-field label="Client name"></v-text-field>
+          </v-flex>
+          <v-flex xs2>
+            <v-btn dark icon color="green">
+              <v-icon>check</v-icon>
+            </v-btn>
+          </v-flex>
+        </v-layout>
+      </div>
     </div>
   </v-navigation-drawer>
 </template>
 
 <script>
 import Enumerable from "linq";
-import { shoppingCartEventBus } from "../eventBuses";
+import { shoppingCartEventBus, action } from "../eventBuses";
 import { priceCalculator } from "../services/priceCalculator";
 
 export default {
-  props: ["show-shopping-cart"],
+  props: ["value"],
   data() {
     return {
-      items: [
-        {
-          allowNotes: true,
-          extras: ["HuqPlrlQy4XOUTyVjYEy", "FjEYw1qHv0Ws84WbkzCU"],
-          id: "2HZqD5bxlm7zFpH4IWoL",
-          imageUrl:
-            "http://elmejorbocadillo.com/151-thickbox_default/bocadillo-de-butifarra.jpg",
-          name: "Bocadillo de longaniza",
-          price: "4.5",
-          count: 1
-        }
-      ]
+      items: []
     };
   },
   methods: {
@@ -53,6 +64,8 @@ export default {
       shoppingCartEventBus.updateOrderItem(item, index);
     },
     addProduct(product) {
+      console.warn('Adding product to current order')
+
       let items = this.items;
       let itemWithIndex = product => {
         let sameProduct = null;
@@ -102,29 +115,47 @@ export default {
     buildOrderItemFromProduct(product) {
       product.count = 1;
       return product;
+    },
+    emitInput($event) {
+      this.$emit("input", $event);
+    },
+    deleteEntireOrder() {
+      var items = this.items;
+      var component = this;
+      this.items = [];
+      action.allowUndo("Shopping cart removed", () => {
+        component.items = items;
+      });
+    },
+    onOrderItemUpdated(orderItem, index) {
+      var previousItem = this.items[index];
+      if (orderItem.count <= 0) {
+        this.items.splice(index, 1);
+        action.allowUndo("Item removed", () => {
+          this.items.splice(index, 0, previousItem);
+        });
+      } else {
+        this.items.splice(index, 1, orderItem);
+      }
     }
+
   },
   computed: {
     orderPrice: function() {
       let price = 0;
-      for(let item of this.items) {
+      for (let item of this.items) {
         price += priceCalculator.compute(item) * item.count;
       }
       return price;
     }
   },
   created() {
-    let component = this;
-    shoppingCartEventBus.$on("addProduct", product => {
-      this.addProduct(product);
-    });
-    shoppingCartEventBus.$on("orderItemUpdated", (orderItem, index) => {
-      if (orderItem.count <= 0) {
-        component.items.splice(index, 1);
-      } else {
-        component.items.splice(index, 1, orderItem);
-      }
-    });
+    shoppingCartEventBus.$on("addProduct", this.addProduct);
+    shoppingCartEventBus.$on("orderItemUpdated", this.onOrderItemUpdated);
+  },
+  beforeDestroy() {
+    shoppingCartEventBus.$off("addProduct", this.addProduct);
+    shoppingCartEventBus.$off("orderItemUpdated", this.onOrderItemUpdated);
   },
   watch: {
     items: function(newValue) {
@@ -136,6 +167,12 @@ export default {
 <style>
 .repeated-item {
   background-color: #90ee90;
+}
+.to-bottom {
+  position: absolute;
+  bottom: 0;
+  display: block;
+  width: 100%;
 }
 </style>
 
