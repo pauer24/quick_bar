@@ -28,12 +28,12 @@ const actions = {
     debugger;
     products().doc(obj.product.id).update(obj.product)
       .then(function (docRef) { console.debug('Product updated successfully.', docRef); obj.onSuccess(); })
-      .catch(function (error) { console.error('While updating new product.', error); })
+      .catch(function (error) { console.error('While updating product.', error); })
   },
   deleteProduct({ commit }, obj) {
     products().doc(obj.product.id).delete()
       .then(function (docRef) { console.debug('Product deleted successfully.', docRef); obj.onSuccess(); })
-      .catch(function (error) { console.error('While deleting new product.', error); })
+      .catch(function (error) { console.error('While deleting product.', error); })
   }
 }
 

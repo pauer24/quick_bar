@@ -68,10 +68,8 @@ export default {
       this.dialog = true;
     },
     productSelected(selectedProduct) {
-      console.warn('Product selected. Event received')
       let product = Object.assign({}, selectedProduct);
       if (!product.extras || product.extras.length === 0) {
-        console.warn('Product selected. Product with no extras. Pushing to Cart')
         shoppingCartEventBus.addProduct(product);
       } else {
         this.dialog = true;

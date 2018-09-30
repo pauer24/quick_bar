@@ -34,10 +34,10 @@
             </v-btn>
           </v-flex>
           <v-flex xs8>
-            <v-text-field label="Client name"></v-text-field>
+            <v-text-field label="Client name" v-model="clientName"></v-text-field>
           </v-flex>
           <v-flex xs2>
-            <v-btn dark icon color="green">
+            <v-btn dark icon color="green" @click="commitOrder">
               <v-icon>check</v-icon>
             </v-btn>
           </v-flex>
@@ -51,21 +51,22 @@
 import Enumerable from "linq";
 import { shoppingCartEventBus, action } from "../eventBuses";
 import { priceCalculator } from "../services/priceCalculator";
+import { mapGetters, mapActions } from "vuex"
 
 export default {
   props: ["value"],
   data() {
     return {
-      items: []
+      items: [],
+      clientName: ''
     };
   },
   methods: {
+    ...mapActions({ saveOrder: 'saveOrder', removeOrder: 'deleteOrder' }),
     showItem(item, index) {
       shoppingCartEventBus.updateOrderItem(item, index);
     },
     addProduct(product) {
-      console.warn('Adding product to current order')
-
       let items = this.items;
       let itemWithIndex = product => {
         let sameProduct = null;
@@ -102,7 +103,6 @@ export default {
       };
 
       let sameItem = itemWithIndex(product);
-      debugger;
       if (sameItem) {
         let item = sameItem.item;
         item.count++;
@@ -137,10 +137,44 @@ export default {
       } else {
         this.items.splice(index, 1, orderItem);
       }
+    },
+    commitOrder() {
+      debugger;
+      let order = {
+        items: this.items,
+        creator: this.connectedUser,
+        client: this.clientName
+      }
+
+      this.saveOrder({order, onSuccess: this.onOrderCommited});
+    },
+    onOrderCommited(savedOrder) {
+      debugger;
+      var component = this;
+      let currentItems = this.items.slice();
+      let currentClientName = this.clientName;
+
+      var rollbackOrder = () => {
+        component.removeOrder(
+        {
+          order: {id: savedOrder.id },
+          onSuccess: () => {
+            debugger;
+            component.items = currentItems,
+            component.clientName = currentClientName
+          }
+        })
+      }
+
+      this.items.splice(0, this.items.length);
+      this.clientName = ''
+
+      action.allowUndo('Order saved', rollbackOrder);
     }
 
   },
   computed: {
+    ...mapGetters({ connectedUser: 'connectedUser'}),
     orderPrice: function() {
       let price = 0;
       for (let item of this.items) {

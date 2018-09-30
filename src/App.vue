@@ -15,7 +15,7 @@
             <v-layout row wrap>
               <v-flex xs12 sm6>
                 <v-card class="pa-4 mb-3 semitransparent">
-                  <v-text-field v-model="username" label="Username" required></v-text-field>
+                  <v-text-field :value="username" @input="setUsername" label="Username" required></v-text-field>
                 </v-card>
               </v-flex>
             </v-layout>
@@ -46,14 +46,13 @@
 
 <script>
 import MainLayout from './components/layout/MainLayout.vue';
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import firebase from 'firebase/app';
 import 'firebase/firestore'
 
 export default {
   data() {
     return {
-      username: 'Paulov',
       firestoreConfig: {},
       showConfigSection: false,
       isInitialized: false,
@@ -66,7 +65,11 @@ export default {
     this.isValid();
   },
   methods: {
-    ...mapActions({ setProducts: 'setProducts', setMenu: 'setMenu' }),
+    ...mapActions({
+      setUsername: 'setConnectedUser',
+      setProducts: 'setProducts',
+      setMenu: 'setMenu',
+      setOrders: 'setOrders' }),
     getFirestoreConfigFromFile() {
       try {
         return require("../public/firestoreConfig.json");
@@ -124,9 +127,12 @@ export default {
       return result;
     },
     resetApp() {
-      this.username = null;
+      this.setUsername(null);
       this.isInitialized = false;
     }
+  },
+  computed: {
+    ...mapGetters({username: 'connectedUser'}),
   },
   components: {
     mainLayout: MainLayout

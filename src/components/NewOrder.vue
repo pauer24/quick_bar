@@ -71,7 +71,6 @@ export default {
       this.selectedGroup = this.selectedGroup.previous;
     },
     selectProduct(product) {
-      console.warn('Product selected. Calling eventBus')
       shoppingCartEventBus.productSelected(product);
     },
     saveProduct(newValues) {

@@ -11,11 +11,9 @@ export const menuTreeEventBus = new Vue({
 export const shoppingCartEventBus = new Vue({
   methods: {
     addProduct(product) {
-      console.warn('Adding product. Emitting event');
       this.$emit('addProduct', product);
     },
     productSelected(product) {
-      console.warn('Product selected. Emitting event')
       this.$emit('productSelected', product);
     },
     updateOrderItem(item, index) {

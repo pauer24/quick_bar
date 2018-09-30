@@ -52,13 +52,13 @@
 
 <script>
 import { action } from "../../eventBuses";
+import { mapGetters } from "vuex";
 
 import UserLoggedInMenu from "./UserLoggedInMenu.vue";
 import CurrentOrder from "../CurrentOrder.vue";
 import UndoActionSnack from "../common/UndoActionSnack.vue";
 
 export default {
-  props: ["username"],
   data() {
     return {
       clipped: true,
@@ -102,12 +102,13 @@ export default {
     }
   },
   created() {
-    action.$on('allowUndo', showUndoSnack);
+    action.$on('allowUndo', this.showUndoSnack);
   },
   beforeDestroy() {
-    action.$off('allowUndo', showUndoSnack);
+    action.$off('allowUndo', this.showUndoSnack);
   },
   computed: {
+    ...mapGetters({ username: "connectedUser" }),
     showShoppingCart: function() {
       return !this.hideShoppingCart && this.shoppingCartItemsCount > 0;
     }
