@@ -174,7 +174,7 @@ export default {
 
   },
   computed: {
-    ...mapGetters({ connectedUser: 'connectedUser'}),
+    ...mapGetters({ connectedUser: 'user'}),
     orderPrice: function() {
       let price = 0;
       for (let item of this.items) {

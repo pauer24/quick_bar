@@ -6,7 +6,7 @@
     </v-btn>
     <v-list>
         <v-list-tile>
-        <v-list-tile-title>Hello, {{username}}!</v-list-tile-title>
+        <v-list-tile-title>Hello, {{user.name}}!</v-list-tile-title>
         </v-list-tile>
         <v-divider></v-divider>
         <v-list-tile @click="logOut">
@@ -26,7 +26,7 @@ export default {
         }
     },
     computed: {
-      ...mapGetters({username: 'connectedUser'})
+      ...mapGetters({user: 'user'})
     }
 }
 </script>

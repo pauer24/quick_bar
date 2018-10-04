@@ -10,20 +10,29 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   // actions,
   state: {
-    connectedUser: 'Pavlof'
+    user: {
+      name: 'Pavlof',
+      role: 'waiter'
+    }
   },
   mutations: {
-    'SET_CONNECTED_USER'(state, username) {
-      state.connectedUser = username;
+    'SET_USER_NAME'(state, usename) {
+      state.user.name = username;
+    },
+    'SET_USER_ROLE'(state, role) {
+      state.user.role = role;
     }
   },
   actions: {
-    setConnectedUser({commit}, username) {
-      commit('SET_CONNECTED_USER', username)
+    setUserName({commit}, username) {
+      commit('SET_USER_NAME', username)
+    },
+    setUserRole({commit}, role) {
+      commit('SET_USER_ROLE', role)
     }
   },
   getters: {
-    connectedUser(state) { return state.connectedUser}
+    user(state) { return state.user }
   },
   modules: {
     products,

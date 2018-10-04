@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <main-layout v-if="isInitialized" @logOut="resetApp()" :username="username"></main-layout>
+    <main-layout v-if="isInitialized" @logOut="resetApp()"></main-layout>
     <v-content v-else>
       <v-img src="https://wallpapers.wallhaven.cc/wallpapers/full/wallhaven-309808.jpg">
         <v-container fluid grid-list-md>
@@ -15,7 +15,8 @@
             <v-layout row wrap>
               <v-flex xs12 sm6>
                 <v-card class="pa-4 mb-3 semitransparent">
-                  <v-text-field :value="username" @input="setUsername" label="Username" required></v-text-field>
+                  <v-text-field :value="user.name" @input="setUserName" label="Username" required></v-text-field>
+                  <v-select :items="['waiter', 'cooker']" :value="user.role" @input="setUserRole" label="Role" ></v-select>
                 </v-card>
               </v-flex>
             </v-layout>
@@ -30,15 +31,12 @@
                   <v-text-field v-model="firestoreConfig.projectId" label="Project ID" required></v-text-field>
                 </v-card>
               </v-flex>
-              <!-- <v-btn :disabled="!valid" @click="saveData">Ready!</v-btn> -->
             </v-layout>
             <v-layout>
               <v-btn @click="isValid" class="transparent">Ready!</v-btn>
             </v-layout>
           </v-container>
         </v-form>
-
-        <!-- </v-parallax> -->
       </v-img>
     </v-content>
   </v-app>
@@ -56,7 +54,7 @@ export default {
       firestoreConfig: {},
       showConfigSection: false,
       isInitialized: false,
-      firestoreInitialized: false
+      firestoreInitialized: false,
     };
   },
   created() {
@@ -66,7 +64,8 @@ export default {
   },
   methods: {
     ...mapActions({
-      setUsername: 'setConnectedUser',
+      setUserName: 'setUserName',
+      setUserRole: 'setUserRole',
       setProducts: 'setProducts',
       setMenu: 'setMenu',
       setOrders: 'setOrders' }),
@@ -78,7 +77,7 @@ export default {
       }
     },
     isValid() {
-      if (this.username && this.isValidFirestoreConfig()) {
+      if (!!this.user.name && !!this.user.role && this.isValidFirestoreConfig()) {
         this.isInitialized = true;
         this.initializeFirestore();
       }
@@ -99,25 +98,28 @@ export default {
       let component = this;
       let firestore = firebase.firestore();
 
-      firestore.collection('products').onSnapshot(function(snap) {
-        let updatedProducts = snap.docs.map(doc => {
+      let mapSnapshotDocuments = (snap) => {
+        return snap.docs.map(doc => {
           let p = doc.data();
           p.id = doc.id;
           return p;
         });
+      }
 
+      firestore.collection('products').onSnapshot(function(snap) {
+        let updatedProducts = mapSnapshotDocuments(snap);
         component.setProducts(updatedProducts);
       });
 
       firestore.collection('menu').onSnapshot(function(snap) {
-        let updatedMenu = snap.docs.map(doc => {
-          let m = doc.data();
-          m.id = doc.id;
-          return m;
-        })
-
+        let updatedMenu = mapSnapshotDocuments(snap);
         component.setMenu(updatedMenu[0]);
       });
+
+      firestore.collection('orders').onSnapshot(function(snap) {
+        let updatedOrders = mapSnapshotDocuments(snap);
+        component.setOrders(updatedOrders);
+      })
     },
     isValidFirestoreConfig() {
       let result =
@@ -127,12 +129,12 @@ export default {
       return result;
     },
     resetApp() {
-      this.setUsername(null);
+      this.setUserName(null);
       this.isInitialized = false;
     }
   },
   computed: {
-    ...mapGetters({username: 'connectedUser'}),
+    ...mapGetters({user: 'user'}),
   },
   components: {
     mainLayout: MainLayout

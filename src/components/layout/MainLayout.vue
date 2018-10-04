@@ -39,7 +39,7 @@
           <v-icon>shopping_cart</v-icon>
         </v-btn>
       </v-badge>
-      <user-logged-in-menu :username="username" @userLoggedOut="logOut" />
+      <user-logged-in-menu @userLoggedOut="logOut" />
     </v-toolbar>
     <v-content>
       <v-slide-y-transition mode="out-in">
@@ -52,7 +52,6 @@
 
 <script>
 import { action } from "../../eventBuses";
-import { mapGetters } from "vuex";
 
 import UserLoggedInMenu from "./UserLoggedInMenu.vue";
 import CurrentOrder from "../CurrentOrder.vue";
@@ -108,7 +107,6 @@ export default {
     action.$off('allowUndo', this.showUndoSnack);
   },
   computed: {
-    ...mapGetters({ username: "connectedUser" }),
     showShoppingCart: function() {
       return !this.hideShoppingCart && this.shoppingCartItemsCount > 0;
     }
